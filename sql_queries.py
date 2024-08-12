@@ -162,8 +162,9 @@ SELECT DISTINCT
     user_gender,
     user_level
 FROM staging_events
-WHERE user_id IS NOT NULL
-ON CONFLICT (user_id) DO UPDATE SET level = EXCLUDED.level
+WHERE
+    user_id IS NOT NULL AND
+    user_id NOT IN (SELECT DISTINCT user_id FROM users)
 """)
 
 song_table_insert = ("""
@@ -176,7 +177,6 @@ SELECT DISTINCT
     duration
 FROM staging_songs
 WHERE song_id IS NOT NULL
-ON CONFLICT (song_id) DO NOTHING
 """)
 
 artist_table_insert = ("""
@@ -189,11 +189,6 @@ SELECT DISTINCT
     artist_longitude
 FROM staging_songs
 WHERE artist_id IS NOT NULL
-ON CONFLICT (artist_id) DO UPDATE SET
-    name = EXCLUDED.name,
-    location = EXCLUDED.location,
-    latitude = EXCLUDED.latitude,
-    longitude = EXCLUDED.longitude
 """)
 
 time_table_insert = ("""
@@ -206,8 +201,6 @@ SELECT DISTINCT
     EXTRACT(month FROM start_time),
     EXTRACT(year FROM start_time),
     EXTRACT(weekday FROM start_time)
-FROM songplays
-ON CONFLICT (start_time) DO NOTHING
 FROM songplays
 """)
 
